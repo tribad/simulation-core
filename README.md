@@ -22,10 +22,16 @@ Documentation is of course not existing. I am still available to fix this is som
   * Simulation Core
     * Time descrete updates
     * Event based updates
+    * Simulation Objects can be loaded on-demand and are unloaded after some timeout.
   * Web-Server
+    * Uses a shared library to create dynamic content (somewhat fast)
+    * From the shared library messages can be send to the simulation core
+    * Requests that wait for a response message will be parked. So no blocking here for other request.
   * WebSocket server
   * WebSocket client code.
   * PostgreSQL database access
+    * In general the simulation acts like a in-memory-database.
+    * So updates on simulation objects are written in the background to the DB.
 
 ## Support tool
 
