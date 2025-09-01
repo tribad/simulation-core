@@ -29,7 +29,6 @@ add_library(comm
             wssconnection.cpp
             wssifcthread.cpp
             binifc.cpp binsifc.cpp
-            fieldtoken.cpp
-            pdu/httpresponse.cpp
+        pdu/httpresponse.cpp
             pdu/httprequest.cpp
             cx509.cpp)
