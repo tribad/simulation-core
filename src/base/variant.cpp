@@ -1,0 +1,462 @@
+#include <sstream>
+#include "helper.h"
+#include "variant.h"
+
+tVariant::tVariant(const tVariant& in){
+    type = in.type;
+    switch (type) {
+    case eVariant::Double:
+        dbl = in.dbl;
+        break;
+    case eVariant::Int:
+        il  = in.il;
+        break;
+    case eVariant::Unsigned:
+    case eVariant::Boolean:
+        ul  = in.ul;
+        break;
+    case eVariant::Reference:
+        ptr = in.ptr;
+        break;
+    case eVariant::String:
+        ptr = strdup((const char*)(in.ptr));
+        break;
+    default:
+        break;
+    }
+}
+
+
+const tVariant& tVariant::operator=(const tVariant& in){
+    if (type == eVariant::String) {
+        free(ptr);
+    }
+    type = in.type;
+    switch (type) {
+    case eVariant::Double:
+        dbl = in.dbl;
+        break;
+    case eVariant::Int:
+        il  = in.il;
+        break;
+    case eVariant::Unsigned:
+    case eVariant::Boolean:
+        ul  = in.ul;
+        break;
+    case eVariant::Reference:
+        ptr = in.ptr;
+        break;
+    case eVariant::String:
+        ptr = strdup((const char*)(in.ptr));
+        break;
+    default:
+        break;
+    }
+    return (*this);
+}
+
+tVariant::operator unsigned long() const {
+    long unsigned int retval = 0ul;
+
+    switch (type) {
+    case eVariant::Double:
+        retval = (long unsigned int)dbl;
+        break;
+    case eVariant::Int:
+        retval = il;
+        break;
+    case eVariant::Unsigned:
+        retval = ul;
+        break;
+    case eVariant::Reference:
+        retval = *((long unsigned int*)(ptr));
+        break;
+    case eVariant::String:
+        retval = strtoul((char*)ptr, 0, 0);
+        break;
+    case eVariant::Boolean:
+        if (ul == 0) {
+            retval = 0;
+        } else {
+            retval = 1;
+        }
+        break;
+    case eVariant::Null:
+        retval = 0ul;
+        break;
+    }
+    return retval;
+}
+
+tVariant::operator long double() const {
+    long double retval = 0.0;
+
+    switch (type) {
+    case eVariant::Double:
+        retval = dbl;
+        break;
+    case eVariant::Int:
+        retval = il;
+        break;
+    case eVariant::Unsigned:
+        retval = ul;
+        break;
+    case eVariant::Reference:
+        retval = *((double*)(ptr));
+        break;
+    case eVariant::String:
+        retval = strtod((const char*)ptr, 0);
+        break;
+    case eVariant::Boolean:
+        if (ul == 0) {
+            retval = 0.0;
+        } else {
+            retval = 1.0;
+        }
+        break;
+    case eVariant::Null:
+        retval = 0.0;
+        break;
+    }
+    return retval;
+}
+
+tVariant::operator bool() const {
+    bool retval = false;
+
+    switch (type) {
+    case eVariant::Double:
+        if (dbl == 0.0) {
+            retval = false;
+        } else {
+            retval = true;
+        }
+        break;
+    case eVariant::Int:
+        if (il == 0) {
+            retval = false;
+        } else {
+            retval = true;
+        }
+        break;
+    case eVariant::Unsigned:
+    case eVariant::Boolean:
+        if (ul == 0) {
+            retval = false;
+        } else {
+            retval = true;
+        }
+        break;
+    case eVariant::Reference:
+        if (ptr == 0) {
+            retval = false;
+        } else {
+            retval = true;
+        }
+        break;
+    case eVariant::String:
+        if ((helper::tolower((const char*)ptr) == "true") || ((*this) != 0ul)) {
+            retval = true;
+        } else {
+            retval = false;
+        }
+        break;
+    case eVariant::Null:
+        retval = false;
+        break;
+    }
+    return retval;
+}
+
+tVariant::operator void*() const {
+    void* retval = nullptr;
+
+    switch (type) {
+    case eVariant::Double:
+    case eVariant::Int:
+    case eVariant::Unsigned:
+    case eVariant::Boolean:
+    case eVariant::Null:
+        break;
+    case eVariant::Reference:
+    case eVariant::String:
+        retval = ptr;
+        break;
+    default:
+        break;
+    }
+    return retval;
+}
+
+tVariant::operator long () const {
+    long int retval = 0;
+
+    switch (type) {
+    case eVariant::Double:
+        retval = (long int)dbl;
+        break;
+    case eVariant::Int:
+        retval = il;
+        break;
+    case eVariant::Unsigned:
+        retval = ul;
+        break;
+    case eVariant::Reference:
+        retval = *((long int*)(ptr));
+        break;
+    case eVariant::String:
+        retval = strtol((char*)ptr, 0, 0);
+        break;
+    case eVariant::Boolean:
+        if (ul == 0) {
+            retval = 0;
+        } else {
+            retval = 1;
+        }
+        break;
+    case eVariant::Null:
+        retval = 0;
+        break;
+    }
+    return retval;
+}
+
+tVariant::operator std::string() const {
+    std::ostringstream oss;
+    std::string        retval;
+
+    switch (type) {
+    case eVariant::Double:
+        oss << dbl;
+        retval = oss.str();
+        break;
+    case eVariant::Int:
+        oss << il;
+        retval = oss.str();
+        break;
+    case eVariant::Unsigned:
+        oss << ul;
+        retval = oss.str();
+        break;
+    case eVariant::Reference:
+        oss << ptr;
+        retval = oss.str();
+        break;
+    case eVariant::String:
+        if (ptr != 0) {
+            retval=(char*)ptr;
+        } else {
+            retval.clear();
+        }
+        break;
+    case eVariant::Boolean:
+        if (ul == 0) {
+            retval = "false";
+        } else {
+            retval = "true";
+        }
+        break;
+    case eVariant::Null:
+        retval = "";
+        break;
+    }
+    return retval;
+}
+
+tVariant & tVariant::push_back(char c) {
+    char cc[2] = {c, '\0'};
+    if (type != eVariant::String) {
+        (*this) = cc;
+    } else {
+        char* longerstring = (char*)malloc(strlen((const char*)(ptr))+2);
+        strcpy(longerstring ,(const char*)ptr);
+        free (ptr);
+        strcat(longerstring, cc);
+        ptr = longerstring;
+    }
+
+    return *this;
+}
+
+tVariant::tVariant(const char* t) {
+    type = eVariant::String;
+    dbl = 0;
+    ul = 0;
+    il = 0;
+    if (t != 0) {
+        ptr = malloc(std::strlen(t)+1);
+#ifdef DEBUG
+        memset(ptr, 0, std::strlen(t)+1);
+#endif
+        std::strcpy((char*)ptr, t);
+    } else {
+        ptr = 0;
+        type = eVariant::Null;
+    }
+}
+
+bool tVariant::operator==(const tVariant& aCheck) const {
+    bool retval = false;
+
+    switch (type) {
+    case eVariant::Double:
+        retval = (dbl == (double)aCheck);
+        break;
+    case eVariant::Int:
+        retval = (il == (int64_t)aCheck);
+        break;
+    case eVariant::Unsigned:
+        retval = (ul == (uint64_t)aCheck);
+        break;
+    case eVariant::Boolean:
+        retval = ((bool)ul == (bool)aCheck);
+        break;
+    case eVariant::Reference:
+        if (ptr != nullptr) {
+            retval = (ptr == (void*)aCheck);
+        } else {
+        }
+        break;
+    case eVariant::String:
+        if ((ptr == nullptr) && (aCheck.ptr == nullptr)) {
+            retval = true;
+        } else {
+            if ((ptr == nullptr) || (aCheck.ptr == nullptr)) {
+                retval = false;
+            } else {
+                retval = !strcmp((const char*)ptr, ((std::string)(aCheck)).c_str());
+            }
+        }
+        break;
+    case eVariant::Null:
+        break;
+    }
+    return retval;
+}
+
+bool tVariant::operator!=(const tVariant& aCheck) const {
+    bool retval = false;
+
+    switch (type) {
+    case eVariant::Double:
+        retval = (dbl != (double)aCheck);
+        break;
+    case eVariant::Int:
+        retval = (il != (int64_t)aCheck);
+        break;
+    case eVariant::Unsigned:
+        retval = (ul != (uint64_t)aCheck);
+        break;
+    case eVariant::Boolean:
+        retval = ((bool)ul != (bool)aCheck);
+        break;
+    case eVariant::Reference:
+        if (ptr != nullptr) {
+            retval = (ptr != (void*)aCheck);
+        } else {
+        }
+        break;
+    case eVariant::String:
+        if ((ptr == nullptr) && (aCheck.ptr == nullptr)) {
+            retval = false;
+        } else {
+            if ((ptr == nullptr) || (aCheck.ptr == nullptr)) {
+                retval = true;
+            } else {
+                retval = strcmp((const char*)ptr, ((std::string)(aCheck)).c_str());
+            }
+        }
+        break;
+    case eVariant::Null:
+        retval = (type != aCheck.type);
+        break;
+    }
+    return retval;
+}
+
+
+tVariant tVariant::operator ++(int) {
+    tVariant retval;
+    switch (type) {
+    case eVariant::Double:
+        retval = dbl++;
+        break;
+    case eVariant::Int:
+        retval = il++;
+        break;
+    case eVariant::Unsigned:
+        retval = ul++;
+        break;
+    default:
+        retval = *this;
+        break;
+    }
+    return retval;
+}
+tVariant tVariant::operator ++() {
+    tVariant retval;
+    switch (type) {
+    case eVariant::Double:
+        retval = ++dbl;
+        break;
+    case eVariant::Int:
+        retval = ++il;
+        break;
+    case eVariant::Unsigned:
+        retval = ++ul;
+        break;
+    default:
+        retval = *this;
+        break;
+    }
+    return retval;
+}
+tVariant tVariant::operator --(int) {
+    tVariant retval;
+    switch (type) {
+    case eVariant::Double:
+        retval = dbl--;
+        break;
+    case eVariant::Int:
+        retval = il--;
+        break;
+    case eVariant::Unsigned:
+        retval = ul--;
+        break;
+    default:
+        retval = *this;
+        break;
+    }
+    return retval;
+}
+
+tVariant tVariant::operator --() {
+    tVariant retval;
+    switch (type) {
+    case eVariant::Double:
+        retval = --dbl;
+        break;
+    case eVariant::Int:
+        retval = --il;
+        break;
+    case eVariant::Unsigned:
+        retval = --ul;
+        break;
+    default:
+        retval = *this;
+        break;
+    }
+    return retval;
+}
+
+unsigned long operator-(unsigned long a, const tVariant& value) {
+    return (-((unsigned long)(value) - a));
+}
+
+bool operator>(uint64_t a, const tVariant& value) {
+    return ((unsigned long)(value) < a);
+}
+
+bool operator<(const tVariant& value, unsigned long a) {
+    return ((unsigned long)(value) < a);
+}
